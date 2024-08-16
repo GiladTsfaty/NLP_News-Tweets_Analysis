@@ -15,7 +15,8 @@ from tensorflow.keras.models import Model
 import spacy
 import seaborn as sns
 from nltk.sentiment import SentimentIntensityAnalyzer
-
+from transformers import BartForConditionalGeneration, BartTokenizer
+import random
 
 
 # Import necessary modules for RNN
@@ -33,7 +34,13 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 # nltk.download('stopwords')
 # nltk.download('averaged_perceptron_tagger')
 # nltk.download('vader_lexicon')
+import sys
+import io
 
+# Redirect stdout to handle Unicode characters
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+print("Your text with special characters: ━")
 stopwords3 = set(nltk.corpus.stopwords.words('english'))
 
 # Load spaCy model
@@ -102,15 +109,16 @@ print(f"Average number of CNN tweets per day: {cnn_tweets_per_day.mean():.2f}")
 print(f"Average number of BBC tweets per day: {bbc_tweets_per_day.mean():.2f}\n")
 
 
-plt.figure(figsize=(14, 6))
-sns.countplot(data=cnn_sample, x='date_only', color='blue', label='CNN', alpha=0.6)
-sns.countplot(data=bbc_sample, x='date_only', color='red', label='BBC', alpha=0.6)
-plt.xticks(rotation=90)
-plt.xlabel('Date')
-plt.ylabel('Number of Tweets')
-plt.title('Number of Tweets Per Day')
-plt.legend()
-plt.show()
+# plt.figure(figsize=(14, 6))
+# sns.countplot(data=cnn_sample, x='date_only', color='blue', label='CNN', alpha=0.6)
+# sns.countplot(data=bbc_sample, x='date_only', color='red', label='BBC', alpha=0.6)
+# plt.xticks(rotation=90)
+# plt.xlabel('Date')
+# plt.ylabel('Number of Tweets')
+# plt.title('Number of Tweets Per Day')
+# plt.legend()
+# plt.show()
+
 
 # 2. Tweet Length Distribution
 cnn_sample['tweet_length'] = cnn_sample['tweet'].apply(len)
@@ -127,15 +135,16 @@ print(f"Average tweet length for BBC: {bbc_avg_tweet_length:.2f} characters\n")
 
 
 
-plt.figure(figsize=(14, 6))
-sns.histplot(cnn_sample['tweet_length'], bins=30, color='blue', label='CNN', alpha=0.6)
-sns.histplot(bbc_sample['tweet_length'], bins=30, color='red', label='BBC', alpha=0.6)
-plt.xlabel('Tweet Length')
-plt.ylabel('Frequency')
-plt.title('Tweet Length Distribution')
-plt.legend()
-plt.show()
-
+# plt.figure(figsize=(14, 6))
+# sns.histplot(cnn_sample['tweet_length'], bins=30, color='blue', label='CNN', alpha=0.6)
+# sns.histplot(bbc_sample['tweet_length'], bins=30, color='red', label='BBC', alpha=0.6)
+# plt.xlabel('Tweet Length')
+# plt.ylabel('Frequency')
+# plt.title('Tweet Length Distribution')
+# plt.legend()
+# plt.show()
+#
+#
 
 
 
@@ -170,35 +179,36 @@ print(cnn_sentiment_dist)
 print("\nBBC Sentiment Distribution:")
 print(bbc_sentiment_dist)
 
-# Visualize sentiment distribution
-plt.figure(figsize=(10, 6))
-width = 0.35
-x = np.arange(3)
-plt.bar(x - width/2, cnn_sentiment_dist, width, label='CNN')
-plt.bar(x + width/2, bbc_sentiment_dist, width, label='BBC')
-plt.xlabel('Sentiment')
-plt.ylabel('Percentage')
-plt.title('Sentiment Distribution: CNN vs BBC')
-plt.xticks(x, ['Negative', 'Neutral', 'Positive'])
-plt.legend()
-plt.tight_layout()
-plt.show()
+# # Visualize sentiment distribution
+# plt.figure(figsize=(10, 6))
+# width = 0.35
+# x = np.arange(3)
+# plt.bar(x - width/2, cnn_sentiment_dist, width, label='CNN')
+# plt.bar(x + width/2, bbc_sentiment_dist, width, label='BBC')
+# plt.xlabel('Sentiment')
+# plt.ylabel('Percentage')
+# plt.title('Sentiment Distribution: CNN vs BBC')
+# plt.xticks(x, ['Negative', 'Neutral', 'Positive'])
+# plt.legend()
+# plt.tight_layout()
+# plt.show()
 
 # Analyze sentiment trends over time
 cnn_sentiment_trend = cnn_sample.groupby(cnn_sample['date'].dt.to_period('M'))['sentiment_scores'].apply(lambda x: np.mean([i['compound'] for i in x]))
 bbc_sentiment_trend = bbc_sample.groupby(bbc_sample['date'].dt.to_period('M'))['sentiment_scores'].apply(lambda x: np.mean([i['compound'] for i in x]))
 
-# Visualize sentiment trends
-plt.figure(figsize=(12, 6))
-plt.plot(cnn_sentiment_trend.index.astype(str), cnn_sentiment_trend.values, label='CNN')
-plt.plot(bbc_sentiment_trend.index.astype(str), bbc_sentiment_trend.values, label='BBC')
-plt.xlabel('Date')
-plt.ylabel('Average Sentiment (Compound Score)')
-plt.title('Sentiment Trends Over Time: CNN vs BBC')
-plt.legend()
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+# # Visualize sentiment trends
+# plt.figure(figsize=(12, 6))
+# plt.plot(cnn_sentiment_trend.index.astype(str), cnn_sentiment_trend.values, label='CNN')
+# plt.plot(bbc_sentiment_trend.index.astype(str), bbc_sentiment_trend.values, label='BBC')
+# plt.xlabel('Date')
+# plt.ylabel('Average Sentiment (Compound Score)')
+# plt.title('Sentiment Trends Over Time: CNN vs BBC')
+# plt.legend()
+# plt.xticks(rotation=45)
+# plt.tight_layout()
+# plt.show()
+
 
 #####  CONTINUE  #####
 
@@ -216,7 +226,41 @@ bbc_sample = bbc_sample[['tweet']]
 cnn_sample = pd.read_csv('cnn_sample.csv')
 bbc_sample = pd.read_csv('bbc_sample.csv')
 
+# Load the pre-trained BART model and tokenizer
+model_name = "facebook/bart-large-cnn"
+tokenizer = BartTokenizer.from_pretrained(model_name)
+model = BartForConditionalGeneration.from_pretrained(model_name)
 
+def summarize_tweet(tweet):
+    # Tokenize the tweet and prepare it for the model
+    inputs = tokenizer.encode("summarize: " + tweet, return_tensors="pt", max_length=512, truncation=True)
+
+    # Generate a summary
+    summary_ids = model.generate(inputs, max_length=50, min_length=10, length_penalty=2.0, num_beams=4, early_stopping=True)
+
+    # Decode the summary and return it
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    return summary
+
+# Summarize 3 random CNN tweets
+print("CNN Tweet Summarization:")
+for i, tweet in enumerate(random.sample(cnn_sample['tweet'].tolist(), 3)):
+    print(f"\nOriginal Tweet {i+1}:")
+    print(tweet)
+    summary = summarize_tweet(tweet)
+    print(f"\nSummarized Tweet {i+1}:")
+    print(summary)
+    print("-" * 50)
+
+# Summarize 3 random BBC tweets
+print("\nBBC Tweet Summarization:")
+for i, tweet in enumerate(random.sample(bbc_sample['tweet'].tolist(), 3)):
+    print(f"\nOriginal Tweet {i+1}:")
+    print(tweet)
+    summary = summarize_tweet(tweet)
+    print(f"\nSummarized Tweet {i+1}:")
+    print(summary)
+    print("-" * 50)
 
 
 
@@ -274,42 +318,42 @@ bbc_sorted_words = sorted(bbc_word_dict.items(), key=lambda x: x[1], reverse=Tru
 #####  VISUALIZATION  #####
 
 # Function to plot bar chart
-# def plot_top_words(sorted_words, title, n=20):
-#     words, values = zip(*sorted_words[:n])
-#     plt.figure(figsize=(12, 6))
-#     plt.bar(words, values)
-#     plt.title(title)
-#     plt.xticks(rotation=45, ha='right')
-#     plt.tight_layout()
-#     plt.show()
-#
-#
-# # # Plot top words for CNN and BBC
-# # plot_top_words(cnn_sorted_words, 'Top Words in CNN Tweets')
-# # plot_top_words(bbc_sorted_words, 'Top Words in BBC Tweets')
-#
-#
-# # Function to create word cloud
-# def create_word_cloud(word_dict, title):
-#     wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(word_dict)
-#     plt.figure(figsize=(10, 5))
-#     plt.imshow(wordcloud, interpolation='bilinear')
-#     plt.axis('off')
-#     plt.title(title)
-#     plt.show()
-#
-#
-# # # Create word clouds for CNN and BBC
-# # create_word_cloud(cnn_word_dict, 'Word Cloud for CNN Tweets')
-# # create_word_cloud(bbc_word_dict, 'Word Cloud for BBC Tweets')
-#
-# # Print top 20 words for each source
-# print("Top 20 words in CNN tweets:")
-# print([(word, int(score)) for word, score in cnn_sorted_words[:20]])
-# print("\nTop 20 words in BBC tweets:")
-# print([(word, int(score)) for word, score in bbc_sorted_words[:20]])
-#
-#
+def plot_top_words(sorted_words, title, n=20):
+    words, values = zip(*sorted_words[:n])
+    plt.figure(figsize=(12, 6))
+    plt.bar(words, values)
+    plt.title(title)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+
+# Plot top words for CNN and BBC
+plot_top_words(cnn_sorted_words, 'Top Words in CNN Tweets')
+plot_top_words(bbc_sorted_words, 'Top Words in BBC Tweets')
+
+
+# Function to create word cloud
+def create_word_cloud(word_dict, title):
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(word_dict)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.title(title)
+    plt.show()
+
+
+# # Create word clouds for CNN and BBC
+# create_word_cloud(cnn_word_dict, 'Word Cloud for CNN Tweets')
+# create_word_cloud(bbc_word_dict, 'Word Cloud for BBC Tweets')
+
+# Print top 20 words for each source
+print("Top 20 words in CNN tweets:")
+print([(word, int(score)) for word, score in cnn_sorted_words[:20]])
+print("\nTop 20 words in BBC tweets:")
+print([(word, int(score)) for word, score in bbc_sorted_words[:20]])
+
+
 
 
 #####  WORD2VEC  #####
@@ -617,70 +661,8 @@ print(gpt2_generated_text)
 
 
 
-###### CODE ABOVE
 
 
-
-
-
-
-
-# WORKS_DROPED FOR _EDA
-# #####  DATA EXTRACTION  #####
-#
-# # Load the datasets with low_memory=False to avoid dtype warnings
-# cnn_tweets = pd.read_csv('C:\\Users\\yyyy\\Desktop\\NLP\\tweets_cnn.csv', low_memory=False)
-# bbc_tweets = pd.read_csv('C:\\Users\\yyyy\\Desktop\\NLP\\tweets_bbc.csv', low_memory=False)
-#
-# # Drop problematic columns (22 and 24)
-# cnn_tweets.drop(cnn_tweets.columns[[22, 24]], axis=1, inplace=True)
-# bbc_tweets.drop(bbc_tweets.columns[[22, 24]], axis=1, inplace=True)
-#
-# # Convert the 'date' column to datetime
-# cnn_tweets['date'] = pd.to_datetime(cnn_tweets['date'], errors='coerce')
-# bbc_tweets['date'] = pd.to_datetime(bbc_tweets['date'], errors='coerce')
-#
-# # Define the date range
-# start_date = pd.to_datetime('2016-01-01')
-# end_date = pd.to_datetime('2020-01-01')
-#
-# # Filter by date range
-# cnn_filtered = cnn_tweets[(cnn_tweets['date'] >= start_date) & (cnn_tweets['date'] <= end_date)]
-# bbc_filtered = bbc_tweets[(bbc_tweets['date'] >= start_date) & (bbc_tweets['date'] <= end_date)]
-#
-# # Find the intersection of dates within this range
-# cnn_dates = set(cnn_filtered['date'].dt.date)
-# bbc_dates = set(bbc_filtered['date'].dt.date)
-# common_dates = cnn_dates.intersection(bbc_dates)
-#
-# # Filter by common dates
-# cnn_filtered = cnn_filtered[cnn_filtered['date'].dt.date.isin(common_dates)]
-# bbc_filtered = bbc_filtered[bbc_filtered['date'].dt.date.isin(common_dates)]
-#
-# # Sample tweets (sample as many as possible if there are fewer than 2500)
-# cnn_sample = cnn_filtered.sample(n=min(2500, len(cnn_filtered)), random_state=42)
-# bbc_sample = bbc_filtered.sample(n=min(2500, len(bbc_filtered)), random_state=42)
-#
-# # Print the number of tweets in each sample
-# print(f"Number of tweets in CNN sample: {len(cnn_sample)}")
-# print(f"Number of tweets in BBC sample: {len(bbc_sample)}")
-#
-#
-# # Drop unnecessary columns (only need the text of the tweets)
-# cnn_sample = cnn_sample[['tweet']]
-# bbc_sample = bbc_sample[['tweet']]
-#
-# # Save the sampled data to new CSV files
-# cnn_sample.to_csv('C:\\Users\\yyyy\\Desktop\\NLP\\cnn_sample.csv', index=False)
-# bbc_sample.to_csv('C:\\Users\\yyyy\\Desktop\\NLP\\bbc_sample.csv', index=False)
-#
-#
-# #####  DATA LOADING  #####
-#
-# # Load your sampled data
-# cnn_sample = pd.read_csv('C:\\Users\\yyyy\\Desktop\\NLP\\cnn_sample.csv')
-# bbc_sample = pd.read_csv('C:\\Users\\yyyy\\Desktop\\NLP\\bbc_sample.csv')
-#
 
 
 
