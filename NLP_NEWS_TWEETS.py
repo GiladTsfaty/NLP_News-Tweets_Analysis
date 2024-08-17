@@ -38,9 +38,8 @@ import sys
 import io
 
 # Redirect stdout to handle Unicode characters
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+# sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8') for writing to outputfile
 
-print("Your text with special characters: ━")
 stopwords3 = set(nltk.corpus.stopwords.words('english'))
 
 # Load spaCy model
@@ -109,15 +108,15 @@ print(f"Average number of CNN tweets per day: {cnn_tweets_per_day.mean():.2f}")
 print(f"Average number of BBC tweets per day: {bbc_tweets_per_day.mean():.2f}\n")
 
 
-# plt.figure(figsize=(14, 6))
-# sns.countplot(data=cnn_sample, x='date_only', color='blue', label='CNN', alpha=0.6)
-# sns.countplot(data=bbc_sample, x='date_only', color='red', label='BBC', alpha=0.6)
-# plt.xticks(rotation=90)
-# plt.xlabel('Date')
-# plt.ylabel('Number of Tweets')
-# plt.title('Number of Tweets Per Day')
-# plt.legend()
-# plt.show()
+plt.figure(figsize=(14, 6))
+sns.countplot(data=cnn_sample, x='date_only', color='blue', label='CNN', alpha=0.6)
+sns.countplot(data=bbc_sample, x='date_only', color='red', label='BBC', alpha=0.6)
+plt.xticks(rotation=90)
+plt.xlabel('Date')
+plt.ylabel('Number of Tweets')
+plt.title('Number of Tweets Per Day')
+plt.legend()
+plt.show()
 
 
 # 2. Tweet Length Distribution
@@ -135,16 +134,16 @@ print(f"Average tweet length for BBC: {bbc_avg_tweet_length:.2f} characters\n")
 
 
 
-# plt.figure(figsize=(14, 6))
-# sns.histplot(cnn_sample['tweet_length'], bins=30, color='blue', label='CNN', alpha=0.6)
-# sns.histplot(bbc_sample['tweet_length'], bins=30, color='red', label='BBC', alpha=0.6)
-# plt.xlabel('Tweet Length')
-# plt.ylabel('Frequency')
-# plt.title('Tweet Length Distribution')
-# plt.legend()
-# plt.show()
-#
-#
+plt.figure(figsize=(14, 6))
+sns.histplot(cnn_sample['tweet_length'], bins=30, color='blue', label='CNN', alpha=0.6)
+sns.histplot(bbc_sample['tweet_length'], bins=30, color='red', label='BBC', alpha=0.6)
+plt.xlabel('Tweet Length')
+plt.ylabel('Frequency')
+plt.title('Tweet Length Distribution')
+plt.legend()
+plt.show()
+
+
 
 
 
@@ -180,34 +179,34 @@ print("\nBBC Sentiment Distribution:")
 print(bbc_sentiment_dist)
 
 # # Visualize sentiment distribution
-# plt.figure(figsize=(10, 6))
-# width = 0.35
-# x = np.arange(3)
-# plt.bar(x - width/2, cnn_sentiment_dist, width, label='CNN')
-# plt.bar(x + width/2, bbc_sentiment_dist, width, label='BBC')
-# plt.xlabel('Sentiment')
-# plt.ylabel('Percentage')
-# plt.title('Sentiment Distribution: CNN vs BBC')
-# plt.xticks(x, ['Negative', 'Neutral', 'Positive'])
-# plt.legend()
-# plt.tight_layout()
-# plt.show()
+plt.figure(figsize=(10, 6))
+width = 0.35
+x = np.arange(3)
+plt.bar(x - width/2, cnn_sentiment_dist, width, label='CNN')
+plt.bar(x + width/2, bbc_sentiment_dist, width, label='BBC')
+plt.xlabel('Sentiment')
+plt.ylabel('Percentage')
+plt.title('Sentiment Distribution: CNN vs BBC')
+plt.xticks(x, ['Negative', 'Neutral', 'Positive'])
+plt.legend()
+plt.tight_layout()
+plt.show()
 
 # Analyze sentiment trends over time
 cnn_sentiment_trend = cnn_sample.groupby(cnn_sample['date'].dt.to_period('M'))['sentiment_scores'].apply(lambda x: np.mean([i['compound'] for i in x]))
 bbc_sentiment_trend = bbc_sample.groupby(bbc_sample['date'].dt.to_period('M'))['sentiment_scores'].apply(lambda x: np.mean([i['compound'] for i in x]))
 
 # # Visualize sentiment trends
-# plt.figure(figsize=(12, 6))
-# plt.plot(cnn_sentiment_trend.index.astype(str), cnn_sentiment_trend.values, label='CNN')
-# plt.plot(bbc_sentiment_trend.index.astype(str), bbc_sentiment_trend.values, label='BBC')
-# plt.xlabel('Date')
-# plt.ylabel('Average Sentiment (Compound Score)')
-# plt.title('Sentiment Trends Over Time: CNN vs BBC')
-# plt.legend()
-# plt.xticks(rotation=45)
-# plt.tight_layout()
-# plt.show()
+plt.figure(figsize=(12, 6))
+plt.plot(cnn_sentiment_trend.index.astype(str), cnn_sentiment_trend.values, label='CNN')
+plt.plot(bbc_sentiment_trend.index.astype(str), bbc_sentiment_trend.values, label='BBC')
+plt.xlabel('Date')
+plt.ylabel('Average Sentiment (Compound Score)')
+plt.title('Sentiment Trends Over Time: CNN vs BBC')
+plt.legend()
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
 
 
 #####  CONTINUE  #####
@@ -226,6 +225,9 @@ bbc_sample = bbc_sample[['tweet']]
 cnn_sample = pd.read_csv('cnn_sample.csv')
 bbc_sample = pd.read_csv('bbc_sample.csv')
 
+
+
+#####  Summarization  #####
 # Load the pre-trained BART model and tokenizer
 model_name = "facebook/bart-large-cnn"
 tokenizer = BartTokenizer.from_pretrained(model_name)
@@ -344,8 +346,8 @@ def create_word_cloud(word_dict, title):
 
 
 # # Create word clouds for CNN and BBC
-# create_word_cloud(cnn_word_dict, 'Word Cloud for CNN Tweets')
-# create_word_cloud(bbc_word_dict, 'Word Cloud for BBC Tweets')
+create_word_cloud(cnn_word_dict, 'Word Cloud for CNN Tweets')
+create_word_cloud(bbc_word_dict, 'Word Cloud for BBC Tweets')
 
 # Print top 20 words for each source
 print("Top 20 words in CNN tweets:")
@@ -364,6 +366,9 @@ all_tweets = cnn_sample['processed_tweet'].tolist() + bbc_sample['processed_twee
 all_tweets = [preprocess_text4(word_tokenize(tweet)) for tweet in all_tweets]
 # Train Word2Vec model
 w2v_model = Word2Vec(sentences=all_tweets, vector_size=100, window=5, workers=4)
+## We tried different vector_sizes, ended up using 100.
+
+
 
 # Function to find similar words
 def find_similar_words(word, topn=10):
@@ -551,106 +556,6 @@ gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 prompt_text = "The latest news from CNN: "
 gpt2_generated_text = generate_gpt2_text(gpt2_model, gpt2_tokenizer, prompt_text)
 print(gpt2_generated_text)
-
-
-
-
-
-
-
-#####   OTHER STEPS  #####
-
-
-
-
-
-
-
-
-
-# #####  TWEET SUMMARIZATION  #####
-#
-# # Initialize the summarization pipeline
-# summarizer = pipeline('summarization')
-#
-# # Function to summarize tweets
-# def summarize_tweet(tweet):
-#     try:
-#         # Summarize the tweet
-#         summary = summarizer(tweet, max_length=15, min_length=10, do_sample=False)
-#         return summary[0]['summary_text']
-#     except Exception as e:
-#         # If summarization fails, return the original tweet
-#         return tweet
-#
-#
-#
-# # Function to print original and summarized tweets
-# # Initialize the summarization pipeline
-# summarizer = pipeline('summarization')
-#
-# # Function to summarize tweets
-# def summarize_tweet(tweet):
-#     try:
-#         # Summarize the tweet
-#         summary = summarizer(tweet, max_length=15, min_length=10, do_sample=False)
-#         return summary[0]['summary_text']
-#     except Exception as e:
-#         # If summarization fails, return the original tweet
-#         return tweet
-#
-#
-# # Function to print original and summarized tweets
-# def print_original_and_summary(df, num_samples=5):
-#     samples = df.sample(n=num_samples, random_state=42)
-#     for _, row in samples.iterrows():
-#         print("Original tweet:")
-#         print(row['tweet'])
-#         print("\nSummarized tweet:")
-#         print(row['summarized_tweet'])
-#         print("\n" + "=" * 50 + "\n")
-#
-# # Print examples for CNN
-# print("CNN Tweet Summarization Examples:")
-# print_original_and_summary(cnn_sample)
-#
-# # Print examples for BBC
-# print("\nBBC Tweet Summarization Examples:")
-# print_original_and_summary(bbc_sample)
-#
-# #
-# # # Apply summarization to both datasets
-# # cnn_sample['summarized_tweet'] = cnn_sample['tweet'].apply(summarize_tweet)
-# # bbc_sample['summarized_tweet'] = bbc_sample['tweet'].apply(summarize_tweet)
-# #
-# # # Calculate and print average reduction in length
-# # cnn_reduction = (cnn_sample['tweet'].str.len() - cnn_sample['summarized_tweet'].str.len()) / cnn_sample['tweet'].str.len() * 100
-# # bbc_reduction = (bbc_sample['tweet'].str.len() - bbc_sample['summarized_tweet'].str.len()) / bbc_sample['tweet'].str.len() * 100
-# #
-# # print(f"\nAverage length reduction for CNN tweets: {cnn_reduction.mean():.2f}%")
-# # print(f"Average length reduction for BBC tweets: {bbc_reduction.mean():.2f}%")
-# #
-#
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
