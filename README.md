@@ -6,7 +6,7 @@ This project is a Natural Language Processing (NLP) analysis of news tweets from
 
 ## Project Structure
 
-The project directory contains the following files and folders:
+The project directory contains the following files:
 
 - `bbc_sample.csv`: Sample tweets from BBC.
 - `cnn_sample.csv`: Sample tweets from CNN.
