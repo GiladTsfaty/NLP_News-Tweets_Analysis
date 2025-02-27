@@ -11,21 +11,13 @@ The project directory contains the following files and folders:
 - `.idea/`: Contains project-specific settings and configurations for PyCharm.
 - `bbc_sample.csv`: Sample tweets from BBC.
 - `cnn_sample.csv`: Sample tweets from CNN.
-- `NLP Final Project.docx`: Documentation of the project.
-- `NLP Final Project.pdf`: PDF version of the project documentation.
+- `NLP Final Project.docx`: Documentation of the project. (in hebrew) 
+- `NLP Final Project.pdf`: PDF version of the project documentation. (in hebrew) 
 - `NLP_NEWS_TWEETS.py`: Main script for analyzing the news tweets.
-- `NumberOfTweets.png`: Visualization of the number of tweets over time.
 - `output.txt`: Output file containing analysis results.
 - `requirements.txt`: List of Python dependencies required for the project.
-- `SentimentDist.png`: Visualization of sentiment distribution.
-- `SentimentOverTime.png`: Visualization of sentiment over time.
-- `TopWordsBar.png`: Bar chart of top words in the tweets.
-- `TopWordsBarCN.png`: Bar chart of top words in CNN tweets.
-- `trying.py`: Additional script for testing and experimentation.
 - `tweets_bbc.csv`: Full dataset of tweets from BBC.
 - `tweets_cnn.csv`: Full dataset of tweets from CNN.
-- `WordCloudBBC.png`: Word cloud visualization for BBC tweets.
-- `WordCloudCNN.png`: Word cloud visualization for CNN tweets.
 
 ## Installation
 
