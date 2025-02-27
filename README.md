@@ -8,7 +8,6 @@ This project is a Natural Language Processing (NLP) analysis of news tweets from
 
 The project directory contains the following files and folders:
 
-- `.idea/`: Contains project-specific settings and configurations for PyCharm.
 - `bbc_sample.csv`: Sample tweets from BBC.
 - `cnn_sample.csv`: Sample tweets from CNN.
 - `NLP Final Project.docx`: Documentation of the project. (in hebrew) 
