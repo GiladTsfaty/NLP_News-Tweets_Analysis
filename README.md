@@ -44,4 +44,8 @@ The project generates several visualizations to help understand the data:
 Contributing
 If you would like to contribute to this project, please fork the repository and submit a pull request. We welcome any improvements or additions to the analysis and visualizations.
 
+# Contributors
+[Gilad Tsfaty]
+[Roy Segal]
+[Eilon Aharoni]
 
